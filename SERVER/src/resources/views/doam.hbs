@@ -1,0 +1,169 @@
+<div class="header__img__vuon"></div>
+<div class="header__slider">
+    <p class="slider-content-zero">GIÁM SÁT VƯỜN </p>
+    <p class="slider-content-first">K63M1</p>
+</div>
+<div class="header__content-vuon">
+    <p class="header__content-first">
+       Hãy tận hưởng thời gian trong khu vườn tươi tốt của bạn mà không cần bỏ công nhiều chăm sóc. Chăm sóc mọi ngóc ngách và điều chỉnh lịch cắt cỏ và tưới nước phù hợp với thời tiết, mùa và .
+
+Thư giãn trong không gian xung quanh của những loại cây yêu thích của bạn trong một khu vườn an toàn và được chiếu sáng dễ chịu, nơi mọi thứ tự diễn ra.
+
+    </p>
+</div>
+    <div class="backgroud_vuon">
+ 
+
+
+
+    <div class="vuon__house">
+        <div class="temp__house-ht"  data-aos="fade-right" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <p class="nhietdo">Độ ẩm đất</p>
+                <div id="gauge" ></div>
+  
+            
+        </div>
+
+
+
+        <div class="temp__house-dt" data-aos="fade-left" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <div id="ChartContainer"></div>
+            
+        </div>
+    </div>
+       
+    <script type="text/javascript">
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(JSON.parse(xmlHttp.responseText));
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous
+            xmlHttp.send(null);
+        }
+
+        window.onload = function (data) {
+            var dataDoamdat = [];     
+            var Chart = new CanvasJS.Chart("ChartContainer", {
+                zoomEnabled: true, // Dùng thuộc tính có thể zoom vào graph
+                title: {
+                    text: "Do am dat " // Viết tiêu đề cho graph
+                },
+                toolTip: { // Hiển thị cùng lúc 2 trường giá trị nhiệt độ, độ ẩm trên graph
+                    shared: true
+                },
+                axisX: {
+                    title: "chart updates every 2 secs" // Chú thích cho trục X
+                },
+                data: [{
+                    // Khai báo các thuộc tính của dataTemp và dataHumd
+                    type: "splineArea", // Chọn kiểu dữ liệu đường
+                    xValueType: "dateTime", // Cài đặt kiểu giá trị tại trục X là thuộc tính thời gian
+                    showInLegend: true, // Hiển thị "temp" ở mục chú thích (legend items)
+                    name: "doamdat",
+                    dataPoints: dataDoamdat// Dữ liệu hiển thị sẽ lấy từ dataTemp
+                }
+                ],
+            });
+            
+          
+            var yDoamdat = 0;
+           
+            var updateInterval = 10000; // Thời gian cập nhật dữ liệu 2000ms = 2s
+            var time = new Date(); // Lấy thời gian hiện tại
+
+            var updateChart = function () {
+                httpGetAsync('/news', function (data) {
+
+                    // Gán giá trị từ localhost:8000/get vào textbox để hiển thị
+                    document.getElementById("gauge").value = data[data.length - 1].doamdat;
+                   
+                     var gauge = new JustGage({
+                            id: "gauge", 
+                            value: 0,
+                            min: 0,
+                            max: 100,
+                            decimals: 2,
+                            gaugeWidthScale: 1
+                        },);
+                         gauge.refresh(data[data.length - 1].doamdat );
+                    
+                    
+                    
+                    
+                    // Cập nhật thời gian và lấy giá trị nhiệt độ, độ ẩm từ server
+                    time.setTime(time.getTime() + updateInterval);
+                    yDoamdat = parseInt(data[data.length - 1].doamdat);
+                   
+                    dataDoamdat.push({ // cập nhât dữ liệu mới từ server
+                        x: time.getTime(),
+                        y: yDoamdat,
+                    });
+                    
+                    Chart.render(); // chuyển đổi dữ liệu của của graph thành mô hình đồ họa
+                    
+                          
+                });
+            };
+      
+            updateChart(); // Chạy lần đầu tiên
+            setInterval(function () { // Cập nhật lại giá trị graph sau thời gian updateInterval
+                updateChart()
+            }, updateInterval);
+        }
+         
+    </script>
+
+    <div class="LOL"> websocket 
+			<span id="status" style="font-weight: bold;"> disconnected </span>
+		</div>
+		<div class="content_websocket">Bật tắt máy bơm nước</div>
+		<div class="backgroud_check"> 
+			
+            <div class="switch">
+  <input type="checkbox" name="led" id="led"  />
+  <label for="led"><i></i></label>
+  <span></span>
+</div>
+		</div>
+    </div>
+        <script>
+
+        </script>
+		<script type="text/javascript">
+            var led = document.getElementById('led');
+            var url = window.location.host; // hàm trả về url của trang hiện tại kèm theo port
+           var ws = new WebSocket('ws://' + url + '/ws');// mở 1 websocket với port 8000
+            console.log('connecting...')
+            ws.onopen = function() //khi websocket được mở thì hàm này sẽ được thưc hiện
+            {
+                document.getElementById('status').innerHTML = 'Connected';
+                led.disabled = false; //khi websocket được mở, mới cho phép
+                console.log('connected...')
+            };
+            ws.onmessage = function(evt) // sự kiện xảy ra khi client nhận dữ liệu từ server
+            {
+                console.log(evt.data)
+                if (evt.data == 'OFF') {
+                    led.checked = false;
+                } else if (evt.data == 'ON') {
+                    led.checked = true;
+                }
+            };
+            ws.onclose = function() { // hàm này sẽ được thực hiện khi đóng websocket
+                led.disabled = true;
+                document.getElementById('status').innerHTML = 'Connected';
+            };
+            led.onchange = function() { // thực hiện thay đổi bật/tắt led
+                var led_status = 'OFF';
+                if (led.checked) {
+                    led_status = 'ON';
+                }
+                ws.send(led_status)
+            }
+            </script>
+
+</div>
+        
+        

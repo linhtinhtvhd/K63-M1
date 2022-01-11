@@ -1,0 +1,349 @@
+<div class="thoitiet">
+    
+<div class="header__img__temphumd"></div>
+<div class="header__slider">
+    <p class="slider-content-zero">GIÁM SÁT CẢM BIẾN NHIỆT ĐỘ </p>
+    <p class="slider-content-first">K63M1</p>
+</div>
+<div class="header__content">
+    <p class="header__content-first">
+        Bạn có thể xem tất cả giá trị các cảm biến trong nhà của bạn từ xa.
+        K63M1 giúp bạn xem trạng thái nhà bạn nếu bạn ngồi trên ghế với điện thoại thông minh của bạn hoặc thậm chí khi
+        đang di chuyển.
+        Trang web này giúp ta sau dễ tiếp cận với các dự án IOT hơn
+
+    </p>
+</div>
+<h1 class="h1_temp"> 1. THÔNG SỐ NHIỆT ĐỘ TRONG NHÀ</h1><br>
+<div class="temphumd">
+
+
+    <div class="temp__house">
+        <div class="temp__house-ht"  data-aos="fade-right" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <p class="nhietdo">Nhiệt độ hiển thị</p>
+                <div id="gauge" ></div>
+  
+            
+        </div>
+
+
+
+        <div class="temp__house-dt" data-aos="fade-left" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <div id="ChartContainer"></div>
+            
+        </div>
+    </div>
+       <div class="humd__house">
+        <div class="humd__house-ht" data-aos="fade-left" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <p class="nhietdo">Độ ẩm hiển thị</p>
+            <div id="gaugem" ></div>
+        </div>
+
+
+
+        <div class="humd__house-dt" data-aos="fade-right" data-aos-easing="ease-in-sine" data-aos-duration="800">
+            <div id="ChartContainerm"></div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(JSON.parse(xmlHttp.responseText));
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous
+            xmlHttp.send(null);
+        }
+
+        window.onload = function (data) {
+            var dataTemp = [];     
+            var dataHumd = [];
+            var Chart = new CanvasJS.Chart("ChartContainer", {
+                zoomEnabled: true, // Dùng thuộc tính có thể zoom vào graph
+                title: {
+                    text: "Temperature " // Viết tiêu đề cho graph
+                },
+                toolTip: { // Hiển thị cùng lúc 2 trường giá trị nhiệt độ, độ ẩm trên graph
+                    shared: true
+                },
+                axisX: {
+                    title: "chart updates every 2 secs" // Chú thích cho trục X
+                },
+                data: [{
+                    // Khai báo các thuộc tính của dataTemp và dataHumd
+                    type: "splineArea", // Chọn kiểu dữ liệu đường
+                    xValueType: "dateTime", // Cài đặt kiểu giá trị tại trục X là thuộc tính thời gian
+                    showInLegend: true, // Hiển thị "temp" ở mục chú thích (legend items)
+                    name: "temp",
+                    dataPoints: dataTemp // Dữ liệu hiển thị sẽ lấy từ dataTemp
+                }
+                ],
+            });
+             var Chartm = new CanvasJS.Chart("ChartContainerm", {
+                zoomEnabled: true, // Dùng thuộc tính có thể zoom vào graph
+                title: {
+                    text: "Humidity " // Viết tiêu đề cho graph
+                },
+                toolTip: { // Hiển thị cùng lúc 2 trường giá trị nhiệt độ, độ ẩm trên graph
+                    shared: true
+                },
+                axisX: {
+                    title: "chart updates every 2 secs" // Chú thích cho trục X
+                },
+                data: [{
+                    // Khai báo các thuộc tính của dataTemp và dataHumd
+                    type: "splineArea",
+                    color: "rgba(185, 110, 207, 0.8)", // Chọn kiểu dữ liệu đường
+                    xValueType: "dateTime", // Cài đặt kiểu giá trị tại trục X là thuộc tính thời gian
+                    showInLegend: true, // Hiển thị "temp" ở mục chú thích (legend items)
+                    name: "humd",
+                    dataPoints: dataHumd // Dữ liệu hiển thị sẽ lấy từ dataTemp
+                }
+                ],
+            });
+          
+            var yTempVal = 0;
+            var yHumdVal = 0; // Biến lưu giá trị nhiệt độ (theo trục Y)
+            var updateInterval = 10000; // Thời gian cập nhật dữ liệu 2000ms = 2s
+            var time = new Date(); // Lấy thời gian hiện tại
+
+            var updateChart = function () {
+                httpGetAsync('/news', function (data) {
+
+                    // Gán giá trị từ localhost:8000/get vào textbox để hiển thị
+                    document.getElementById("gauge").value = data[data.length - 1].temperatute;
+                    document.getElementById("gaugem").value = data[data.length -1].humidity;
+                     var gauge = new JustGage({
+                            id: "gauge", 
+                            value: 0,
+                            min: 0,
+                            max: 100,
+                            decimals: 2,
+                            gaugeWidthScale: 1
+                        },);
+                         gauge.refresh(data[data.length - 1].temperatute );
+                     var gaugem = new JustGage({
+                            id: "gaugem", 
+                            value: 0,
+                            min: 0,
+                            max: 100,
+                            decimals: 2,
+                            gaugeWidthScale: 1
+                        },);
+                         gaugem.refresh(data[data.length - 1].humidity );
+                    
+                    
+                    
+                    // Cập nhật thời gian và lấy giá trị nhiệt độ, độ ẩm từ server
+                    time.setTime(time.getTime() + updateInterval);
+                    yTempVal = parseInt(data[data.length - 1].temperatute);
+                    yHumdVal = parseInt(data[data.length - 1].humidity);
+                    dataTemp.push({ // cập nhât dữ liệu mới từ server
+                        x: time.getTime(),
+                        y: yTempVal,
+                    });
+                    dataHumd.push({ // cập nhât dữ liệu mới từ server
+                        x: time.getTime(),
+                        y: yHumdVal,
+                    });
+                    Chart.render(); // chuyển đổi dữ liệu của của graph thành mô hình đồ họa
+                    Chartm.render(); // chuyển đổi dữ liệu của của graph thành mô hình đồ họa
+                          
+                });
+            };
+      
+            updateChart(); // Chạy lần đầu tiên
+            setInterval(function () { // Cập nhật lại giá trị graph sau thời gian updateInterval
+                updateChart()
+            }, updateInterval);
+        }
+         
+    </script>
+</div>
+
+
+<!-- thiết lập kích thước cho graph thông qua id ChartContainer đã thiết lập ở trên  -->
+<h1 class="h1_temp"> 2. THÔNG SỐ THỜI TIẾT NGOÀI TRỜI</h1><br>
+<div class="Body">
+  <div class="containerm">
+        <div class="current-info">
+
+            <div class="date-container">
+                <div class="time" id="time">
+                    12:30 <span id="am-pm">PM</span>
+                </div>
+                <div class="date" id="date">
+                    Monday, 25 May
+                </div>
+
+                <div class="others" id="current-weather-items">
+                    
+                    
+                </div>
+            </div>
+
+            <div class="place-container">
+                <div class="time-zone" id="time-zone">Linhdeptr</div>
+                <div id="country" class="country">VietNam</div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <div class="future-forecast">
+        <div class="today" id="current-temp">
+            <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+            <div class="other">
+                <div class="day">Monday</div>
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+        </div>
+
+        <div class="weather-forecast" id="weather-forecast">
+            <div class="weather-forecast-item">
+                <div class="day">Tue</div>
+                <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+            <div class="weather-forecast-item">
+                <div class="day">Wed</div>
+                <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+            <div class="weather-forecast-item">
+                <div class="day">Thur</div>
+                <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+            <div class="weather-forecast-item">
+                <div class="day">Fri</div>
+                <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+            <div class="weather-forecast-item">
+                <div class="day">Sat</div>
+                <img src="http://openweathermap.org/img/wn/10d@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - 25.6&#176; C</div>
+                <div class="temp">Day - 35.6&#176; C</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    const timeEl = document.getElementById('time');
+const dateEl = document.getElementById('date');
+const currentWeatherItemsEl = document.getElementById('current-weather-items');
+const timezone = document.getElementById('time-zone');
+const countryEl = document.getElementById('country');
+const weatherForecastEl = document.getElementById('weather-forecast');
+const currentTempEl = document.getElementById('current-temp');
+
+
+const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const API_KEY ='49cc8c821cd2aff9af04c9f98c36eb74';
+
+setInterval(() => {
+    const time = new Date();
+    const month = time.getMonth();
+    const date = time.getDate();
+    const day = time.getDay();
+    const hour = time.getHours();
+    const hoursIn12HrFormat = hour >= 13 ? hour %12: hour
+    const minutes = time.getMinutes();
+    const ampm = hour >=12 ? 'PM' : 'AM'
+
+    timeEl.innerHTML = (hoursIn12HrFormat < 10? '0'+hoursIn12HrFormat : hoursIn12HrFormat) + ':' + (minutes < 10? '0'+minutes: minutes)+ ' ' + `<span id="am-pm">${ampm}</span>`
+
+    dateEl.innerHTML = days[day] + ', ' + date+ ' ' + months[month]
+
+}, 1000);
+
+getWeatherData()
+function getWeatherData () {
+    navigator.geolocation.getCurrentPosition((success) => {
+        
+        let {latitude, longitude } = success.coords;
+
+        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=hourly,minutely&units=metric&appid=${API_KEY}`).then(res => res.json()).then(data => {
+
+        console.log(data)
+        showWeatherData(data);
+        })
+
+    })
+}
+
+function showWeatherData (data){
+    let {humidity, pressure, sunrise, sunset, wind_speed} = data.current;
+
+    timezone.innerHTML = data.timezone;
+    countryEl.innerHTML = data.lat + 'N ' + data.lon+'E'
+
+    currentWeatherItemsEl.innerHTML = 
+    `<div class="weather-item">
+        <div>Humidity</div>
+        <div>${humidity}%</div>
+    </div>
+    <div class="weather-item">
+        <div>Pressure</div>
+        <div>${pressure}</div>
+    </div>
+    <div class="weather-item">
+        <div>Wind Speed</div>
+        <div>${wind_speed}</div>
+    </div>
+    <div class="weather-item">
+        <div>Sunrise</div>
+        <div>${window.moment(sunrise * 1000).format('HH:mm a')}</div>
+    </div>
+    <div class="weather-item">
+        <div>Sunset</div>
+        <div>${window.moment(sunset*1000).format('HH:mm a')}</div>
+    </div>
+    
+    
+    `;
+
+    let otherDayForcast = ''
+    data.daily.forEach((day, idx) => {
+        if(idx == 0){
+            currentTempEl.innerHTML = `
+            <img src="http://openweathermap.org/img/wn//${day.weather[0].icon}@4x.png" alt="weather icon" class="w-icon">
+            <div class="other">
+                <div class="day">${window.moment(day.dt*1000).format('dddd')}</div>
+                <div class="temp">Night - ${day.temp.night}&#176;C</div>
+                <div class="temp">Day - ${day.temp.day}&#176;C</div>
+            </div>
+            
+            `
+        }else{
+            otherDayForcast += `
+            <div class="weather-forecast-item">
+                <div class="day">${window.moment(day.dt*1000).format('ddd')}</div>
+                <img src="http://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png" alt="weather icon" class="w-icon">
+                <div class="temp">Night - ${day.temp.night}&#176;C</div>
+                <div class="temp">Day - ${day.temp.day}&#176;C</div>
+            </div>
+            
+            `
+        }
+    })
+
+
+    weatherForecastEl.innerHTML = otherDayForcast;
+}
+
+</script>
